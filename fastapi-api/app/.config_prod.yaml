@@ -1,0 +1,3 @@
+database_url: mysql+pymysql://root:root1234@localhost:3306/test
+jwt_secret: prod_apisecret
+jwt_expires: 3600

@@ -1,0 +1,10 @@
+logs
+*.log
+
+# Mac
+.DS_Store
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
