@@ -15,15 +15,6 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "args": ["uvicorn", "main:app", "--reload"]
-        },
-        {
-            "name": "Python: Django",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "args": [],
-            "django": true,
-            "justMyCode": false
         }
     ]
 }
