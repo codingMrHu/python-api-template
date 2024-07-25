@@ -119,7 +119,7 @@ async def list_user(*,
             filters.append(User.user_name.like(f'%{name}%'))
         data, page = dao.select_page(User, page_num, page_size, *filters)
 
-        return resp_200(data= data, page=data)
+        return resp_200(data= data, page=page)
     else:
         return resp_500(message='用户没有权限')
 
