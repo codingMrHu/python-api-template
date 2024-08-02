@@ -1,0 +1,14 @@
+flask-sqlalchemy
+SQLAlchemy
+pycryptodomex
+pandas
+flask_cors
+pymysql
+authlib
+loguru
+openpyxl
+urllib3
+flask
+requests
+pycryptodome
+apscheduler
