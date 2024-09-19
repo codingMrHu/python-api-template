@@ -5,21 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python 调试程序: Flask",
+            "name": "Python: Flask",
             "type": "debugpy",
             "request": "launch",
             "module": "flask",
             "env": {
                 "FLASK_APP": "main.py",
-                "FLASK_DEBUG": "1"
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "0"
             },
             "args": [
                 "run",
                 "--no-debugger",
                 "--no-reload"
             ],
-            "jinja": true,
-            "autoStartBrowser": false
+            "jinja": true
         }
     ]
 }

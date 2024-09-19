@@ -20,7 +20,6 @@ from sqlmodel import Session, select, update
 
 db_service: 'DatabaseService' = DatabaseService(settings.database_url)
 
-
 @contextmanager
 def session_getter() -> Session:
     """轻量级session context"""

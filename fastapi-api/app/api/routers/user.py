@@ -49,7 +49,7 @@ async def regist(*, request: Request, user: UserCreate):
     else:
         db_user.id = 1
         db_user.role = AdminRole
-    dao.insert(User, db_user)
+    dao.insert(db_user)
     
     AuditLogService.insert_user(db_user, get_request_ip(request))
 
@@ -117,7 +117,7 @@ async def list_user(*,
         filters = []
         if name:
             filters.append(User.user_name.like(f'%{name}%'))
-        data, page = dao.select_page(User, page_num, page_size, *filters)
+        data, page = dao.select_page(User, page_num, page_size, *filters, order_by=[User.id.desc()])
 
         return resp_200(data= data, page=page)
     else:

@@ -11,7 +11,7 @@ from app.utils.utils import CustomJSONEncoder, success_json
 from app import scheduler
 
 app.json_encoder = CustomJSONEncoder
-db.create_all()
+# db.create_all()
 
 
 @app.route("/", methods=['POST', 'GET'])

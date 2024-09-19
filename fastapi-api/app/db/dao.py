@@ -17,91 +17,71 @@ from app.constants import PAGE_SIZE
 
 T = TypeVar("T", bound=SQLModel)
 
-class CRUD(Generic[T]):
-    def __init__(self, model: Type[T]):
-        self.model = model
-
-    def create(self, session: Session, obj_in: T) -> T:
-        session.add(obj_in)
+# 增删查改  
+def insert(obj: T) -> T:
+    with session_getter () as session:
+        session.add(obj)
         session.commit()
-        session.refresh(obj_in)
-        return obj_in
+        session.refresh(obj)
+        return obj
 
-    def read(self, session: Session, *whereclause) -> Optional[T]:
-        query: Select = select(self.model)
-        query = query.where(*whereclause)
-        
-        return session.exec(query).first()
-    
-    def read_all(self, session: Session, *whereclause) -> List[T]:
-        query: Select = select(self.model)
-        
-        query = query.where(*whereclause)
-
-        return session.exec(query).all()
-
-    def update(self, session: Session, obj_in: T) -> T:
-        session.add(obj_in)
+def update(model: Type[T], obj: T) -> T:
+    with session_getter () as session:
+        db_obj = session.get(model, obj.id)
+        if not db_obj:
+            return None
+        for key, value in obj.model_dump().items():
+            setattr(db_obj, key, value)
+        session.add(db_obj)
         session.commit()
-        session.refresh(obj_in)
-        return obj_in
+        session.refresh(db_obj)
+        return db_obj
 
-    def delete(self, session: Session,  *whereclause) -> int:
-        query: Select = select(self.model)
-        
-        query = self.model.__table__.delete()
+def delete(model: Type[T],  *whereclause) -> int:
+    with session_getter () as session:
+        query: Select = select(model)
+        query = model.__table__.delete()
         query = query.where(*whereclause)
         result = session.exec(query)
         session.commit()
         return result.rowcount
-        return 0
 
-    def paginate(
-        self,
-        session: Session,
-        page: int = 1,
-        page_size: int = PAGE_SIZE,
-        *whereclause
-    ) -> Tuple[List[T], int, int, int]:
+def exeute(query: Select) -> Any:
+    with session_getter () as session:
+        return session.exec(query).all()
+
+def select_one(model: Type[T], *whereclause) -> T:
+    with session_getter () as session:
+        query: Select = select(model)
+        query = query.where(*whereclause)
+        return session.exec(query).first()
+    
+def select_all(model: Type[T], *whereclause, order_by: Optional[List[Any]] = None) -> List[T]:
+    with session_getter () as session:
+        query: Select = select(model)
+        query = query.where(*whereclause)
+        if order_by:
+            query = query.order_by(*order_by)
+        return session.exec(query).all()
+
+def select_page(model: Type[T], page: int = 1, page_size: int = PAGE_SIZE, *whereclause, order_by: Optional[List[Any]] = None) -> Tuple:
+    with session_getter() as session:
         """分页查询"""
         offset = (page - 1) * page_size
         limit = page_size
 
-        query = select(self.model)
+        query = select(model)
         query = query.where(*whereclause)
+        
+        if order_by:
+            query = query.order_by(*order_by)
 
         total = session.exec(select(func.count()).select_from(query.subquery())).one()
-        items = session.exec(query.offset(offset).limit(limit)).all()
+        data = session.exec(query.offset(offset).limit(limit)).all()
         
-        # aginated_items, total, current_page, total_pages 
-        return items, {"page_num":page,"page_size":page_size,"total_size":total}
-    
+        # paginated_data, total, current_page, total_pages 
+        return data, {"page_num": page, "page_size": page_size, "total_size": total}
 
-# 增删查改  
-def insert(model: Type[T], obj: T) -> T:
-    with session_getter () as session:
-        return CRUD(model).create(session, obj_in= obj)
-
-def update(model: Type[T], obj: T) -> T:
-    with session_getter () as session:
-        return CRUD(model).update(session, obj_in= obj)
-
-def delete(model: Type[T], id: [str, int], *whereclause) -> int:
-    with session_getter () as session:
-        return CRUD(model).delete(session, id= id, filters= filters)
-
-def select_one(model: Type[T], *whereclause) -> T:
-    with session_getter () as session:
-        return CRUD(model).read(session, *whereclause)
-    
-
-def select_all(model: Type[T], *whereclause) -> List[T]:
-    with session_getter () as session:
-        return CRUD(model).read_all(session, *whereclause)
-
-def select_page(model: Type[T],  page: int=1, page_size: int=PAGE_SIZE, *whereclause) -> Dict:
-    with session_getter () as session:
-        return CRUD(model).paginate(session, page, page_size, *whereclause)
 
 #--------------------------SQL CRUD
 ## input: string sql
@@ -119,7 +99,7 @@ def execute_sql(sql: str) -> int:
         session.commit()
         return result.rowcount
     
-def select_page_sql(sql: str,count_sql: str = None, page: int = 1, page_size: int = PAGE_SIZE) -> Dict:
+def select_page_sql(sql: str,count_sql: str = None, page: int = 1, page_size: int = PAGE_SIZE) -> Tuple:
     offset = (page-1) * page_size
     sql = " %s limit %d,%d" % (sql, offset, PAGE_SIZE)
     data = select_sql(text(sql))

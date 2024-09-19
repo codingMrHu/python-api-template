@@ -183,4 +183,5 @@ class RedisClient:
 
 
 # 示例用法
-redis_client = RedisClient(settings.redis_url)
+# redis_client = RedisClient(settings.redis_url)
+redis_client = None

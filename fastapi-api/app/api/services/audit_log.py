@@ -33,7 +33,7 @@ class AuditLogService:
             ip_address=ip_address,
             note=note,
         )
-        insert(AuditLog, audit_log)
+        insert(audit_log)
         
 
     @classmethod
