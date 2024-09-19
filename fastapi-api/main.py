@@ -21,16 +21,24 @@ from fastapi.staticfiles import StaticFiles
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi import applications
 from fastapi.openapi.docs import get_swagger_ui_html
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from loguru import logger
 
-
-async def handle_http_exception(req: Request, exc: HTTPException) -> ORJSONResponse:
+async def handle_404_exception(req: Request, exc: StarletteHTTPException) -> ORJSONResponse:
     msg = {
-        'status_code': exc.status_code,
-        'status_message': exc.detail['error'] if isinstance(exc.detail, dict) else exc.detail
+        'status_code': status.HTTP_404_NOT_FOUND,
+        'status_message': "Api Path Not Found!"
     }
-    logger.info(f'{req.method} {req.url} {exc.status_code} {exc.detail} ')
+    logger.error(f'{req.method} {req.url} {exc.status_code} {exc.detail} ')
     return ORJSONResponse(content=msg)
+
+# async def handle_http_exception(req: Request, exc: HTTPException) -> ORJSONResponse:
+#     msg = {
+#         'status_code': exc.status_code,
+#         'status_message': exc.detail['error'] if isinstance(exc.detail, dict) else exc.detail
+#     }
+#     logger.info(f'{req.method} {req.url} {exc.status_code} {exc.detail} ')
+#     return ORJSONResponse(content=msg)
 
 
 async def handle_request_validation_error(req: Request, exc: RequestValidationError) -> ORJSONResponse:
@@ -44,9 +52,10 @@ async def handle_generic_exception(req: Request, exc: Exception) -> ORJSONRespon
     return ORJSONResponse(content=msg)
 
 _EXCEPTION_HANDLERS = {
-    HTTPException: handle_http_exception,
+    # HTTPException: handle_http_exception,
     RequestValidationError: handle_request_validation_error,
-    Exception: handle_generic_exception
+    Exception: handle_generic_exception,
+    StarletteHTTPException:handle_404_exception
 }
 
 

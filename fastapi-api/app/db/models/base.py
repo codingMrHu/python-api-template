@@ -31,13 +31,8 @@ def orjson_dumps(v, *, default=None, sort_keys=False, indent_2=True):
 
 
 class SQLModelSerializableTime(SQLModel):
-    create_time: Optional[datetime] = Field(sa_column=Column(
-        DateTime, nullable=False, index=True, server_default=text('CURRENT_TIMESTAMP')))
-    update_time: Optional[datetime] = Field(
-        sa_column=Column(DateTime,
-                         nullable=False,
-                         server_default=text('CURRENT_TIMESTAMP'),
-                         onupdate=text('CURRENT_TIMESTAMP')))
+    create_time: Optional[datetime] = Field(sa_column=Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP')))
+    update_time: Optional[datetime] = Field(sa_column=Column(DateTime, server_default=text('CURRENT_TIMESTAMP'),onupdate=text('CURRENT_TIMESTAMP')))
 
 class SQLModelSerializable(SQLModel):
     class Config:
@@ -59,7 +54,6 @@ class SQLModelSerializable(SQLModel):
         return result
 
 
-
 def valid_char(_str: str, name: str = '', min_len: int = 0, max_len: int = 0, limit_len: int = 0):
     if min_len and len(_str) < min_len:
         raise InvalidArgument.http_exception(f'{name}应大于{min_len}位')
@@ -69,7 +63,6 @@ def valid_char(_str: str, name: str = '', min_len: int = 0, max_len: int = 0, li
         raise InvalidArgument.http_exception(f'{name}应为{limit_len}位')
     return _str
 
-
 def match_char(_str: str, name: str):
     if not re.match(r'^[\u4e00-\u9fa5a-zA-Z\d]+$', _str):
         raise InvalidArgument.http_exception(f'{name}仅支持汉字、字母、数字。')
@@ -78,7 +71,6 @@ def match_char(_str: str, name: str):
 
 def valid_name(name):
     return valid_char(name, name='姓名',min_len= 1, max_len= 35)
-
 
 def valid_password(password: str):
     if not re.match(r'^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])[\da-zA-Z\.\@\$\!\%\*#_~\?\&\^]{8,20}$', password):

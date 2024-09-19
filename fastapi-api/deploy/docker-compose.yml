@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  api:
+    image: contos7/py314-api:base
+    container_name: api
+    working_dir: /root/api
+    environment:
+      TZ: Asia/Shanghai
+    network_mode: "host"
+    command: /root/miniconda3/bin/supervisord -c /root/api/deploy/supervisord.conf
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+      start_period: 30s
+      interval: 90s
+      timeout: 30s
+      retries: 3
+    volumes:
+      - ./api/api:/root/api
+      - ./logs/api:/root/api/logs
+
