@@ -1,4 +1,4 @@
-FROM contos7/py314-api:base
+FROM contos7/py312-api:base
   
 USER root
 

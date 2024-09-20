@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   api:
-    image: contos7/py314-api:base
+    image: contos7/py312-api:base
     container_name: api
     working_dir: /root/api
     environment:
