@@ -27,12 +27,11 @@ def insert(obj: T) -> T:
 
 def update(model: Type[T], obj: T) -> T:
     with session_getter () as session:
-        db_obj = session.get(model, obj.id)
-        if not db_obj:
-            return None
-        for key, value in obj.model_dump().items():
-            setattr(db_obj, key, value)
-        session.add(db_obj)
+        # 将 Pydantic 对象转换为 SQLModel 对象
+        db_obj = model(**obj.model_dump())
+        # 使用 merge 来更新数据库中的对象
+        db_obj = session.merge(db_obj)
+
         session.commit()
         session.refresh(db_obj)
         return db_obj

@@ -4,17 +4,14 @@
 # @Version: 1.0
 # @License: H
 # @Desc: 
-
 from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 from pydantic import BaseModel
-from pydantic.generics import GenericModel
-
 
 # 创建泛型变量
 DataT = TypeVar('DataT')
 
 # 继承自GenericModel 泛型响应模型会将 response_model类型转化返回
-class UnifiedResponseModel(GenericModel, Generic[DataT]):
+class UnifiedResponseModel(BaseModel, Generic[DataT]):
     """统一响应模型"""
     status_code: int
     status_message: str

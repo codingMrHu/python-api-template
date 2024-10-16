@@ -32,13 +32,13 @@ async def handle_404_exception(req: Request, exc: StarletteHTTPException) -> ORJ
     logger.error(f'{req.method} {req.url} {exc.status_code} {exc.detail} ')
     return ORJSONResponse(content=msg)
 
-# async def handle_http_exception(req: Request, exc: HTTPException) -> ORJSONResponse:
-#     msg = {
-#         'status_code': exc.status_code,
-#         'status_message': exc.detail['error'] if isinstance(exc.detail, dict) else exc.detail
-#     }
-#     logger.info(f'{req.method} {req.url} {exc.status_code} {exc.detail} ')
-#     return ORJSONResponse(content=msg)
+async def handle_http_exception(req: Request, exc: HTTPException) -> ORJSONResponse:
+    msg = {
+        'status_code': exc.status_code,
+        'status_message': exc.detail['error'] if isinstance(exc.detail, dict) else exc.detail
+    }
+    logger.info(f'{req.method} {req.url} {exc.status_code} {exc.detail} ')
+    return ORJSONResponse(content=msg)
 
 
 async def handle_request_validation_error(req: Request, exc: RequestValidationError) -> ORJSONResponse:
@@ -52,7 +52,7 @@ async def handle_generic_exception(req: Request, exc: Exception) -> ORJSONRespon
     return ORJSONResponse(content=msg)
 
 _EXCEPTION_HANDLERS = {
-    # HTTPException: handle_http_exception,
+    HTTPException: handle_http_exception,
     RequestValidationError: handle_request_validation_error,
     Exception: handle_generic_exception,
     StarletteHTTPException:handle_404_exception
