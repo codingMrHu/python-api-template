@@ -25,6 +25,12 @@ def insert(obj: T) -> T:
         session.refresh(obj)
         return obj
 
+# 增删查改  
+def insert_bulk(obj_list: list[T]) -> T:
+    with session_getter () as session:
+        session.bulk_save_objects(obj_list)
+        session.commit()
+        
 def update(model: Type[T], obj: T) -> T:
     with session_getter () as session:
         # 将 Pydantic 对象转换为 SQLModel 对象
