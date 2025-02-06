@@ -4,13 +4,9 @@
 # @Version: 1.0
 # @License: H
 # @Desc: 
-
 import os
-
 from loguru import logger
-
 from app.db.base import  db_service
-
 
 
 def init_default_data():
