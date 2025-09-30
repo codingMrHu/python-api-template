@@ -3,16 +3,17 @@
 # @Date: 2024-07-17 15:09:16
 # @Version: 1.0
 # @License: H
-# @Desc: 
+# @Desc:
 import re
 from datetime import datetime
 from uuid import UUID
 from typing import Optional
 
 import orjson
-from sqlmodel import SQLModel,Field
+from sqlmodel import SQLModel, Field
 from sqlalchemy import Column, DateTime, text
 from app.api.errcode.base import InvalidArgument
+
 
 def orjson_dumps(v, *, default=None, sort_keys=False, indent_2=True):
     option = orjson.OPT_SORT_KEYS if sort_keys else None
@@ -31,8 +32,21 @@ def orjson_dumps(v, *, default=None, sort_keys=False, indent_2=True):
 
 
 class SQLModelSerializableTime(SQLModel):
-    create_time: Optional[datetime] = Field(sa_column=Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP')))
-    update_time: Optional[datetime] = Field(sa_column=Column(DateTime, server_default=text('CURRENT_TIMESTAMP'),onupdate=text('CURRENT_TIMESTAMP')))
+    create_time: Optional[datetime] = Field(
+        default=None,
+        sa_column_kwargs={
+            "nullable": False,
+            "server_default": text("CURRENT_TIMESTAMP"),
+        },
+    )
+    update_time: Optional[datetime] = Field(
+        default=None,
+        sa_column_kwargs={
+            "server_default": text("CURRENT_TIMESTAMP"),
+            "onupdate": text("CURRENT_TIMESTAMP"),
+        },
+    )
+
 
 class SQLModelSerializable(SQLModel):
     class Config:
@@ -63,6 +77,7 @@ def valid_char(_str: str, name: str = '', min_len: int = 0, max_len: int = 0, li
         raise InvalidArgument.http_exception(f'{name}应为{limit_len}位')
     return _str
 
+
 def match_char(_str: str, name: str):
     if not re.match(r'^[\u4e00-\u9fa5a-zA-Z\d]+$', _str):
         raise InvalidArgument.http_exception(f'{name}仅支持汉字、字母、数字。')
@@ -70,12 +85,15 @@ def match_char(_str: str, name: str):
 
 
 def valid_name(name):
-    return valid_char(name, name='姓名',min_len= 1, max_len= 35)
+    return valid_char(name, name='姓名', min_len=1, max_len=35)
+
 
 def valid_password(password: str):
     if not re.match(r'^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])[\da-zA-Z\.\@\$\!\%\*#_~\?\&\^]{8,20}$', password):
-        raise InvalidArgument.http_exception('密码长度为8-20位，必须包含大小写字母和数字，可包含.@$!%*#_~?&^，请重新设置密码')
+        raise InvalidArgument.http_exception(
+            '密码长度为8-20位，必须包含大小写字母和数字，可包含.@$!%*#_~?&^，请重新设置密码')
     return password
+
 
 def valid_phone(phone: str):
     valid_char(phone, name='手机号', limit_len=11)

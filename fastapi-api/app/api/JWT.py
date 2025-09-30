@@ -3,10 +3,10 @@
 # @Date: 2024-07-17 10:05:28
 # @Version: 1.0
 # @License: H
-# @Desc: 
+# @Desc:
 
 from typing import List
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 from app.settings import settings
 
 # 配置JWT token的有效期
@@ -19,5 +19,3 @@ class Settings(BaseSettings):
     authjwt_token_location: List[str] = ['cookies', 'headers']
     # Disable CSRF Protection for this example. default is True
     authjwt_cookie_csrf_protect: bool = False
-
-

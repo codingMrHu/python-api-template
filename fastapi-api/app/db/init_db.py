@@ -3,10 +3,10 @@
 # @Date: 2024-07-17 10:25:34
 # @Version: 1.0
 # @License: H
-# @Desc: 
+# @Desc:
 import os
-from loguru import logger
-from app.db.base import  db_service
+from app.utils.logger import logger
+from app.db.base import db_service
 
 
 def init_default_data():
@@ -16,7 +16,7 @@ def init_default_data():
         db_service.create_db_and_tables()
         # with session_getter() as session:
         #     pass
-            # TODO: 初始化数据
+        # TODO: 初始化数据
     except Exception as exc:
         # if the exception involves tables already existing
         # we can ignore it

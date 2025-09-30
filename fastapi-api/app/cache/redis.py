@@ -3,7 +3,7 @@ from typing import Dict
 
 import redis
 from app.settings import settings
-from loguru import logger
+from app.utils.logger import logger
 from redis import ConnectionPool, RedisCluster
 from redis.backoff import ExponentialBackoff
 from redis.cluster import ClusterNode
@@ -29,19 +29,23 @@ class RedisClient:
                         for node in redis_conf['startup_nodes']
                     ]
                 self.connection = RedisCluster.from_url(cluster_url, **redis_conf,
-                                                        retry=Retry(ExponentialBackoff(), 6),
+                                                        retry=Retry(
+                                                            ExponentialBackoff(), 6),
                                                         cluster_error_retry_attempts=1)
                 return
             hosts = [eval(x) for x in redis_conf.pop('sentinel_hosts')]
             password = redis_conf.pop('sentinel_password')
             master = redis_conf.pop('sentinel_master')
-            sentinel = Sentinel(sentinels=hosts, socket_timeout=0.1, password=password)
+            sentinel = Sentinel(
+                sentinels=hosts, socket_timeout=0.1, password=password)
             # 获取主节点的连接
-            self.connection = sentinel.master_for(master, socket_timeout=0.1, **redis_conf)
+            self.connection = sentinel.master_for(
+                master, socket_timeout=0.1, **redis_conf)
 
         else:
             # 单机模式
-            self.pool = ConnectionPool.from_url(url, max_connections=max_connections)
+            self.pool = ConnectionPool.from_url(
+                url, max_connections=max_connections)
             self.connection = redis.StrictRedis(connection_pool=self.pool)
 
     def set(self, key, value, expiration=3600):
@@ -54,7 +58,8 @@ class RedisClient:
             else:
                 logger.error('pickle error, value={}', value)
         except TypeError as exc:
-            raise TypeError('RedisCache only accepts values that can be pickled. ') from exc
+            raise TypeError(
+                'RedisCache only accepts values that can be pickled. ') from exc
         finally:
             self.close()
 
@@ -68,7 +73,8 @@ class RedisClient:
                     return False
                 return True
         except TypeError as exc:
-            raise TypeError('RedisCache only accepts values that can be pickled. ') from exc
+            raise TypeError(
+                'RedisCache only accepts values that can be pickled. ') from exc
         finally:
             self.close()
 

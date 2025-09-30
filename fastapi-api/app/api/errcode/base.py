@@ -3,11 +3,10 @@
 # @Date: 2024-07-18 14:12:10
 # @Version: 1.0
 # @License: H
-# @Desc: 
-
-from fastapi.exceptions import HTTPException
+# @Desc:
 
 from app.api.resp import UnifiedResponseModel
+from fastapi.exceptions import HTTPException
 
 
 class BaseErrorCode:
@@ -26,11 +25,13 @@ class BaseErrorCode:
 
 class UnAuthorizedError(BaseErrorCode):
     Code: int = 403
-    Msg: str = '暂无操作权限'
+    Msg: str = "暂无操作权限"
+
 
 class InvalidArgument(BaseErrorCode):
     """
     参数验证失败, 表单等用户传递的数据验证失败
     """
+
     Code = 422
-    Msg = '参数错误'
+    Msg = "参数错误"

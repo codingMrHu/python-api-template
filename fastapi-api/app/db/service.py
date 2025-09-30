@@ -3,11 +3,11 @@
 # @Date: 2024-07-17 10:31:24
 # @Version: 1.0
 # @License: H
-# @Desc: 
+# @Desc:
 
 from typing import TYPE_CHECKING
 
-from loguru import logger
+from app.utils.logger import logger
 from sqlalchemy.exc import OperationalError
 from sqlmodel import Session, SQLModel, create_engine
 
@@ -37,7 +37,8 @@ class DatabaseService():
 
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type is not None:  # If an exception has been raised
-            logger.error(f'Session rollback because of exception: {exc_type.__name__} {exc_value}')
+            logger.error(
+                f'Session rollback because of exception: {exc_type.__name__} {exc_value}')
             self._session.rollback()
         else:
             self._session.commit()
@@ -48,16 +49,17 @@ class DatabaseService():
             yield session
 
     def create_db_and_tables(self):
-        logger.debug(f'Creating database and tables --{len(SQLModel.metadata.sorted_tables)}')
+        logger.debug(
+            f'Creating database and tables --{len(SQLModel.metadata.sorted_tables)}')
         for table in SQLModel.metadata.sorted_tables:
             logger.debug(f'Creating table {table}')
             try:
                 table.create(self.engine, checkfirst=True)
             except OperationalError as oe:
-                logger.warning(f'Table {table} already exists, skipping. Exception: {oe}')
+                logger.warning(
+                    f'Table {table} already exists, skipping. Exception: {oe}')
             except Exception as exc:
                 logger.error(f'Error creating table {table}: {exc}')
                 raise RuntimeError(f'Error creating table {table}') from exc
-
 
         logger.debug('Database and tables created successfully')
