@@ -9,10 +9,10 @@ import functools
 import json
 from typing import List
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi_jwt_auth import AuthJWT
 
-from app.api.errcode.base import UnAuthorizedError
+from app.api.errcode.base import ApiError, UnAuthorizedError
 from app.api.errcode.user import UserLoginOfflineError
 from app.api.JWT import ACCESS_TOKEN_EXPIRE_TIME
 from app.db.dao import select_one
