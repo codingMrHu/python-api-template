@@ -2,50 +2,45 @@ import pickle
 from typing import Dict
 
 import redis
-from app.settings import settings
-from app.utils.logger import logger
 from redis import ConnectionPool, RedisCluster
 from redis.backoff import ExponentialBackoff
 from redis.cluster import ClusterNode
 from redis.retry import Retry
 from redis.sentinel import Sentinel
 
+from app.settings import settings
+from app.utils.logger import logger
+
 
 class RedisClient:
-
     def __init__(self, url, max_connections=10):
         # # 哨兵模式
-        if isinstance(settings.redis_url, Dict):
-            redis_conf = dict(settings.redis_url)
-            mode = redis_conf.pop('mode', 'sentinel')
-            if mode == 'cluster':
+        if isinstance(settings.redis.url, Dict):
+            redis_conf = dict(settings.redis.url)
+            mode = redis_conf.pop("mode", "sentinel")
+            if mode == "cluster":
                 # 集群模式
-                cluster_url = ''
-                if 'startup_nodes' in redis_conf:
-                    first_node = redis_conf['startup_nodes'][0]
-                    cluster_url = f'redis://{first_node["host"]}:{first_node["port"]}'
-                    redis_conf['startup_nodes'] = [
-                        ClusterNode(node.get('host'), node.get('port'))
-                        for node in redis_conf['startup_nodes']
+                cluster_url = ""
+                if "startup_nodes" in redis_conf:
+                    first_node = redis_conf["startup_nodes"][0]
+                    cluster_url = f"redis://{first_node['host']}:{first_node['port']}"
+                    redis_conf["startup_nodes"] = [
+                        ClusterNode(node.get("host"), node.get("port")) for node in redis_conf["startup_nodes"]
                     ]
-                self.connection = RedisCluster.from_url(cluster_url, **redis_conf,
-                                                        retry=Retry(
-                                                            ExponentialBackoff(), 6),
-                                                        cluster_error_retry_attempts=1)
+                self.connection = RedisCluster.from_url(
+                    cluster_url, **redis_conf, retry=Retry(ExponentialBackoff(), 6), cluster_error_retry_attempts=1
+                )
                 return
-            hosts = [eval(x) for x in redis_conf.pop('sentinel_hosts')]
-            password = redis_conf.pop('sentinel_password')
-            master = redis_conf.pop('sentinel_master')
-            sentinel = Sentinel(
-                sentinels=hosts, socket_timeout=0.1, password=password)
+            hosts = [eval(x) for x in redis_conf.pop("sentinel_hosts")]
+            password = redis_conf.pop("sentinel_password")
+            master = redis_conf.pop("sentinel_master")
+            sentinel = Sentinel(sentinels=hosts, socket_timeout=0.1, password=password)
             # 获取主节点的连接
-            self.connection = sentinel.master_for(
-                master, socket_timeout=0.1, **redis_conf)
+            self.connection = sentinel.master_for(master, socket_timeout=0.1, **redis_conf)
 
         else:
             # 单机模式
-            self.pool = ConnectionPool.from_url(
-                url, max_connections=max_connections)
+            self.pool = ConnectionPool.from_url(url, max_connections=max_connections)
             self.connection = redis.StrictRedis(connection_pool=self.pool)
 
     def set(self, key, value, expiration=3600):
@@ -54,12 +49,11 @@ class RedisClient:
                 self.cluster_nodes(key)
                 result = self.connection.setex(key, expiration, pickled)
                 if not result:
-                    raise ValueError('RedisCache could not set the value.')
+                    raise ValueError("RedisCache could not set the value.")
             else:
-                logger.error('pickle error, value={}', value)
+                logger.error("pickle error, value={}", value)
         except TypeError as exc:
-            raise TypeError(
-                'RedisCache only accepts values that can be pickled. ') from exc
+            raise TypeError("RedisCache only accepts values that can be pickled. ") from exc
         finally:
             self.close()
 
@@ -73,8 +67,7 @@ class RedisClient:
                     return False
                 return True
         except TypeError as exc:
-            raise TypeError(
-                'RedisCache only accepts values that can be pickled. ') from exc
+            raise TypeError("RedisCache only accepts values that can be pickled. ") from exc
         finally:
             self.close()
 
@@ -182,12 +175,11 @@ class RedisClient:
         self.connection.delete(key)
 
     def cluster_nodes(self, key):
-        if isinstance(self.connection,
-                      RedisCluster) and self.connection.get_default_node() is None:
+        if isinstance(self.connection, RedisCluster) and self.connection.get_default_node() is None:
             target = self.connection.get_node_from_key(key)
             self.connection.set_default_node(target)
 
 
 # 示例用法
-# redis_client = RedisClient(settings.redis_url)
+# redis_client = RedisClient(settings.redis.url)
 redis_client = None

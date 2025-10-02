@@ -1,3 +1,22 @@
-database_url: mysql+pymysql://root:Composer1234.@118.195.237.205:3306/test
-jwt_secret: dev_apisecret
-jwt_expires: 360000
+# 数据库配置
+database:
+  url: mysql+pymysql://root:Composer1234.@118.195.237.205:3306/test
+
+# JWT配置
+jwt:
+  secret: dev_apisecret
+  expires: 360000
+
+# 腾讯云COS配置
+cos:
+  secret_id: your_secret_id_here
+  secret_key: your_secret_key_here
+  region: ap-guangzhou
+  bucket: your-bucket-name
+  domain: your-custom-domain.com  # 可选，自定义域名
+
+# 日志配置
+logger:
+  level: DEBUG
+  format: "<level>[{level.name} process-{process.id}-{thread.id} {name}:{line}]</level> - <level>trace={extra[trace_id]} {message}</level>"
+  handlers: []

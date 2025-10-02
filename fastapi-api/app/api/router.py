@@ -3,11 +3,15 @@
 # @Date: 2024-07-12 17:11:44
 # @Version: 1.0
 # @License: H
-# @Desc: 
+# @Desc:
 
 # Router for base api
-from app.api.routers import *
 from fastapi import APIRouter
 
-router = APIRouter(prefix='/api', )
-router.include_router(user_router, tags=['user'])
+from app.api.routers import img_router, user_router
+
+router = APIRouter(
+    prefix="/api",
+)
+router.include_router(user_router, tags=["user"])
+router.include_router(img_router, tags=["img"])

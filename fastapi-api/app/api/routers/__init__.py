@@ -5,4 +5,5 @@
 # @License: H
 # @Desc:
 
+from .img import router as img_router
 from .user import router as user_router

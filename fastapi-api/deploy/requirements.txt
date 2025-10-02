@@ -1,1 +1,2 @@
-pydantic==1.10.13
+cos-python-sdk-v5>=1.9.25
+Pillow>=10.0.0
