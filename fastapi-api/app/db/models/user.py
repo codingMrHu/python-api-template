@@ -5,6 +5,10 @@ import re
 from datetime import datetime
 from typing import List, Optional
 
+from pydantic import field_validator
+from sqlalchemy import Column, DateTime, String, func, text
+from sqlmodel import Field, SQLModel, select
+
 from app.db.base import session_getter
 from app.db.models.base import (
     SQLModelSerializable,
@@ -14,9 +18,6 @@ from app.db.models.base import (
     valid_password,
     valid_phone,
 )
-from pydantic import field_validator
-from sqlalchemy import Column, DateTime, String, func, text
-from sqlmodel import Field, SQLModel, select
 
 # 默认普通用户角色的ID
 DefaultRole = "user"
@@ -27,9 +28,11 @@ AdminRole = "admin"
 class UserBase(SQLModelSerializable):
     user_name: str = Field(index=True, unique=True)
     phone_number: Optional[str] = Field(index=True)
-    remark: Optional[str] = Field(index=False)
+    remark: Optional[str] = Field(default=None, nullable=True, index=False)
     last_login_time: Optional[datetime] = Field(
-        sa_column=Column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")), description="上次登录时间"
+        default=None,
+        sa_column=Column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")),
+        description="上次登录时间",
     )
 
 
@@ -41,6 +44,7 @@ class User(UserBase, SQLModelSerializableTime, table=True):
     password: str = Field(default="")
     salt: str = Field(default="", description="密码salt值")
     password_update_time: Optional[datetime] = Field(
+        default=None,
         sa_column=Column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")),
         description="密码最近的修改时间",
     )

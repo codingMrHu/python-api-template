@@ -1,3 +1,3 @@
-database_url: mysql+pymysql://root:root1234@localhost:3306/test
+database_url: mysql+pymysql://root:Composer1234.@118.195.237.205:3306/test
 jwt_secret: dev_apisecret
 jwt_expires: 360000

@@ -7,11 +7,6 @@
 import traceback
 from contextlib import asynccontextmanager
 
-from app.api import router
-from app.db.init_db import init_default_data
-from app.settings import settings
-from app.utils.http_middleware import CustomMiddleware
-from app.utils.logger import configure, logger
 from fastapi import FastAPI, HTTPException, Request, applications, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,35 +16,57 @@ from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.api import router
+from app.api.errcode.base import BaseErrorCode
+from app.api.resp import error_response
+from app.db.init_db import init_default_data
+from app.settings import settings
+from app.utils.http_middleware import CustomMiddleware
+from app.utils.logger import configure, logger
+
 
 async def handle_404_exception(req: Request, exc: StarletteHTTPException) -> ORJSONResponse:
-    msg = {"status_code": status.HTTP_404_NOT_FOUND, "status_message": "Api Path Not Found!"}
-    logger.error(f"{req.method} {req.url} {exc.status_code} {exc.detail} ")
-    return ORJSONResponse(content=msg)
+    response = error_response(
+        code=status.HTTP_404_NOT_FOUND, message="Api Path Not Found!", detail=f"Requested path: {req.url.path}"
+    )
+    logger.error(f"{req.method} {req.url} {exc.code} {exc.detail} ")
+    return ORJSONResponse(content=response.model_dump())
 
 
 async def handle_http_exception(req: Request, exc: HTTPException) -> ORJSONResponse:
-    msg = {
-        "status_code": exc.status_code,
-        "status_message": exc.detail["error"] if isinstance(exc.detail, dict) else exc.detail,
-    }
+    error_detail = exc.detail["error"] if isinstance(exc.detail, dict) else exc.detail
+    response = error_response(
+        code=exc.status_code, message=error_detail, detail=f"HTTP Exception occurred at {req.url.path}"
+    )
     logger.info(f"{req.method} {req.url} {exc.status_code} {exc.detail} ")
-    return ORJSONResponse(content=msg)
+    return ORJSONResponse(content=response.model_dump())
 
 
 async def handle_request_validation_error(req: Request, exc: RequestValidationError) -> ORJSONResponse:
-    msg = {"status_code": status.HTTP_422_UNPROCESSABLE_ENTITY, "status_message": exc.errors()}
+    response = error_response(
+        code=status.HTTP_422_UNPROCESSABLE_ENTITY, message="Request validation failed", detail=str(exc.errors())
+    )
     logger.error(f"{req.method} {req.url} {exc.errors()} {exc.body}")
-    return ORJSONResponse(content=msg)
+    return ORJSONResponse(content=response.model_dump())
+
+
+async def handle_base_error_code(req: Request, exc: BaseErrorCode) -> ORJSONResponse:
+    """处理自定义业务异常"""
+    response = error_response(code=exc.code, message=exc.message, detail=f"Business error occurred at {req.url.path}")
+    logger.info(f"{req.method} {req.url} {exc.code} {exc.message}")
+    return ORJSONResponse(content=response.model_dump())
 
 
 async def handle_generic_exception(req: Request, exc: Exception) -> ORJSONResponse:
-    msg = {"status_code": status.HTTP_500_INTERNAL_SERVER_ERROR, "status_message": "Internal Server Error"}
+    response = error_response(
+        code=status.HTTP_500_INTERNAL_SERVER_ERROR, message="Internal Server Error", detail=traceback.format_exc()
+    )
     logger.error(f"{req.method} {req.url} Internal Server Error {traceback.format_exc()}")
-    return ORJSONResponse(content=msg)
+    return ORJSONResponse(content=response.model_dump())
 
 
 _EXCEPTION_HANDLERS = {
+    BaseErrorCode: handle_base_error_code,
     HTTPException: handle_http_exception,
     RequestValidationError: handle_request_validation_error,
     Exception: handle_generic_exception,
@@ -102,7 +119,7 @@ def create_app():
 
     @app.exception_handler(AuthJWTException)
     def authjwt_exception_handler(request: Request, exc: AuthJWTException):
-        return JSONResponse(status_code=401, content={"detail": exc.message})
+        return JSONResponse(code=401, content={"detail": exc.message})
 
     app.include_router(router)
     return app
